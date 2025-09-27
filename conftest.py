@@ -1,5 +1,5 @@
 import pytest
-from api.helpers import register_new_courier, delete_courier, create_order
+from api.helpers import register_new_courier, delete_courier, create_order, get_order_by_track
 
 
 @pytest.fixture
@@ -7,6 +7,7 @@ def courier():
     courier_data = register_new_courier()
     yield courier_data
     delete_courier(courier_data["id"])
+
 
 @pytest.fixture
 def order():
@@ -19,4 +20,6 @@ def order():
         rent_time=1,
         delivery_date="2025-10-01"
     )
-    return response.json()["track"]
+    track = response.json()["track"]
+    order_info = get_order_by_track(track).json()
+    return order_info["order"]["id"]

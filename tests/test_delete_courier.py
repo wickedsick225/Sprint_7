@@ -6,6 +6,7 @@ from api.urls import URLS
 from api.endpoints import Endpoints
 
 
+
 @allure.feature("Курьер")
 @allure.story("Удаление курьера — успешный запрос")
 def test_delete_courier_success():

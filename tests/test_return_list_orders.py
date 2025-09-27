@@ -2,6 +2,7 @@ import pytest
 import allure
 from api.helpers import get_orders
 
+
 @allure.feature("Заказ")
 @allure.story("Получение списка заказов")
 def test_get_orders_returns_list():

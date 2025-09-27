@@ -2,6 +2,7 @@ import pytest
 import allure
 from api.helpers import login_and_get_id, generate_courier_payload, register_courier_with_payload
 
+
 @allure.feature("Курьер")
 @allure.story("Логин курьера")
 def test_successful_login(courier):

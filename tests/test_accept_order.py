@@ -3,6 +3,7 @@ import allure
 from api.helpers import login_and_get_id, accept_order
 
 
+
 @allure.feature("Заказ")
 @allure.story("Принять заказ")
 def test_accept_order_success(courier, order):
