@@ -1,40 +1,34 @@
 import allure
 import pytest
-from api.helpers import register_new_courier, delete_courier, register_courier_with_payload, generate_courier_payload
-
-
-
-@allure.feature("Курьер")
-@allure.story("Создание курьера")
-def test_create_courier_success():
-    courier = register_new_courier()
-    assert courier["response"].status_code == 201
-    assert courier["id"] is not None
-    {True: lambda: delete_courier(courier["id"])}.get(True)()
+from api.helpers import register_new_courier, register_courier_with_payload
+from data.courier_data import missing_fields_payloads, generate_courier
 
 
 @allure.feature("Курьер")
-@allure.story("Создание курьера — дубликат")
-def test_create_courier_duplicate():
-    courier = register_new_courier()
-    payload = {"login": courier["login"], "password": "any", "firstName": "any"}
-    response = register_courier_with_payload(payload)
-    assert response.status_code == 409
-    {True: lambda: delete_courier(courier["id"])}.get(True)()
+class TestCreateCourier:
 
+    @allure.title("Успешное создание курьера")
+    def test_create_courier_success(self):
+        courier = register_new_courier()
+        assert courier["response"].status_code == 201
+        assert courier["id"] is not None
 
-@allure.feature("Курьер")
-@allure.story("Создание курьера — отсутствие обязательных полей")
-@pytest.mark.parametrize(
-    "missing_field, expected_status",
-    [
-        ("login", 400),
-        ("password", 400),
-        ("firstName", 201),  
-    ],
-)
-def test_create_courier_missing_fields(missing_field, expected_status):
-    payload = generate_courier_payload(missing_field)
-    response = register_courier_with_payload(payload)
-    assert response.status_code == expected_status
-    {201: lambda: delete_courier(response.json().get("id")), 400: lambda: None}.get(expected_status, lambda: None)()
+    @allure.title("Создание дубликата курьера")
+    def test_create_courier_duplicate(self):
+        courier = register_new_courier()
+        payload = generate_courier()
+        payload["login"] = courier["login"]
+
+        response = register_courier_with_payload(payload)
+        assert response.status_code == 409
+        assert "message" in response.json()
+
+    @allure.title("Создание курьера — отсутствие обязательных полей")
+    @pytest.mark.parametrize("payload, expected_status", missing_fields_payloads)
+    def test_create_courier_missing_fields(self, payload, expected_status):
+        response = register_courier_with_payload(payload)
+        assert response.status_code == expected_status
+        if expected_status == 201:
+            assert "id" in response.json()
+        else:
+            assert "message" in response.json()

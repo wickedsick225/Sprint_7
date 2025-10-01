@@ -1,32 +1,31 @@
-import pytest
 import allure
-from api.helpers import login_and_get_id, generate_courier_payload, register_courier_with_payload
+import pytest
+from api.helpers import login_and_get_id
 
 
 @allure.feature("Курьер")
-@allure.story("Логин курьера")
-def test_successful_login(courier):
-    courier_id = login_and_get_id(courier["login"], courier["password"])
-    assert isinstance(courier_id, int)
+class TestLoginCourier:
 
-@allure.feature("Курьер")
-@allure.story("Логин курьера")
-@pytest.mark.parametrize("payload", [
-    {"password": "test"},
-    {"login": "test"}
-])
-def test_login_missing_fields(payload):
-    response = register_courier_with_payload(payload)
-    assert response.status_code == 400
+    @allure.title("Успешный логин курьера")
+    def test_successful_login(self, courier):
+        courier_id = login_and_get_id(courier["login"], courier["password"])
+        assert isinstance(courier_id, int)
 
-@allure.feature("Курьер")
-@allure.story("Логин курьера")
-def test_login_incorrect_password(courier):
-    courier_id = login_and_get_id(courier["login"], "wrongpassword")
-    assert courier_id is None
+    @allure.title("Логин курьера — отсутствуют обязательные поля")
+    @pytest.mark.parametrize("login, password", [
+        (None, "test"),
+        ("test", None),
+    ])
+    def test_login_missing_fields(self, login, password):
+        courier_id = login_and_get_id(login, password)
+        assert courier_id is None
 
-@allure.feature("Курьер")
-@allure.story("Логин курьера")
-def test_login_nonexistent_user():
-    courier_id = login_and_get_id("notexistlogin", "notexistpass")
-    assert courier_id is None
+    @allure.title("Логин курьера с неверным паролем")
+    def test_login_incorrect_password(self, courier):
+        courier_id = login_and_get_id(courier["login"], "wrongpassword")
+        assert courier_id is None
+
+    @allure.title("Логин несуществующего пользователя")
+    def test_login_nonexistent_user(self):
+        courier_id = login_and_get_id("notexistlogin", "notexistpass")
+        assert courier_id is None

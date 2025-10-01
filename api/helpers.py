@@ -6,7 +6,6 @@ from api.urls import URLS
 from api.endpoints import Endpoints
 
 
-
 def generate_random_string(length=10):
     return ''.join(random.choice(string.ascii_lowercase) for _ in range(length))
 
@@ -32,9 +31,13 @@ def register_new_courier():
 
 @allure.step("Авторизуем курьера и получаем id")
 def login_and_get_id(login, password):
+    url = URLS.BASE_URL + Endpoints.LOGIN_COURIER
     payload = {"login": login, "password": password}
-    response = requests.post(URLS.BASE_URL + Endpoints.LOGIN_COURIER, json=payload)
-    return response.json().get("id")
+    response = requests.post(url, json=payload)
+    try:
+        return response.json().get("id") if response.status_code == 200 else None
+    except (ValueError, requests.exceptions.JSONDecodeError):
+        return None
 
 
 @allure.step("Удаляем курьера с id {courier_id}")
