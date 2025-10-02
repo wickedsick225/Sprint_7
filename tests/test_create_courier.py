@@ -1,7 +1,10 @@
 import allure
 import pytest
 from api.helpers import register_new_courier, register_courier_with_payload
-from data.courier_data import missing_fields_payloads, generate_courier
+import requests
+from api.urls import URLS
+from api.endpoints import Endpoints
+from data.courier_data import missing_fields_payloads, generate_courier, invalid_data_login_without_login, invalid_data_login_without_password
 
 
 @allure.feature("Курьер")
@@ -23,12 +26,17 @@ class TestCreateCourier:
         assert response.status_code == 409
         assert "message" in response.json()
 
-    @allure.title("Создание курьера — отсутствие обязательных полей")
-    @pytest.mark.parametrize("payload, expected_status", missing_fields_payloads)
-    def test_create_courier_missing_fields(self, payload, expected_status):
-        response = register_courier_with_payload(payload)
-        assert response.status_code == expected_status
-        if expected_status == 201:
-            assert "id" in response.json()
-        else:
-            assert "message" in response.json()
+
+    @allure.title("Проверка ошибки при создании курьера без обязательных полей")
+    @allure.description("Отправляем запрос без обязательных полей и проверяем, что возвращается 400 и сообщение об ошибке")
+    @pytest.mark.parametrize("courier_data", [
+        invalid_data_login_without_login,
+        invalid_data_login_without_password
+    ])
+    def test_courier_registration_without_parameters_failed(self, courier_data):
+        with allure.step("Отправляем запрос с неполными данными"):
+            response = requests.post(URLS.BASE_URL + Endpoints.CREATE_COURIER, json=courier_data)
+
+        with allure.step("Проверяем, что получаем ошибку 400 и сообщение о нехватке данных"):
+            assert response.status_code == 400
+            assert "Недостаточно данных для создания учетной записи" in response.text
